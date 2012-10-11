@@ -1,0 +1,7 @@
+bin/
+osm/
+shps/
+.bundle/
+vendor/
+*.tmproj
+*.bak
