@@ -30,33 +30,20 @@ module Rake
       
     end
     
-    def connect_to_db(db = 'gis')
-       # conn=PGconn.connect( :dbname   => db)
-       # @@db=conn
-       @@db = Sequel.postgres(db)
-       # @@db=ActiveRecord::Base.establish_connection(:adapter => 'postgis',:dbname   => db)
-        # conn.exec 'set log_duration=off'
-        # conn.exec 'set search_path=public,tiger'
-       if Rake.application.options.trace
-         DB.loggers << Logger.new($stdout)
-         # conn.exec('set client_min_messages to debug')
-       else
-         # conn.exec('set client_min_messages to error')
-      end
-       return @@db
-     end
-
-    
     attr_accessor :geometry_column, :geography_column, :id_column, :srid
     attr_reader :model, :dbname, :dbuser
     boolean_attr :use_copy, :as_geography
     
     @@db=Sequel.connect("postgres:/#{Config.dbname}")
     Sequel::Model.plugin :postgis
+    @@db.extension :postgis
     def initialize(*args, &block)
       super(*args, &block)
       if Rake.application.options.trace
         @@db.loggers << ::Logger.new($stdout)
+        @@db.run('set client_min_messages to debug')
+      else
+        @@db.run('set client_min_messages to error')
       end
       @use_copy = true
       @geometry_column = :the_geom
@@ -68,14 +55,6 @@ module Rake
       #class_eval
       @model = Class.new(Sequel::Model(name.to_sym))
       @model.set_primary_key @id_column
-
-      # connect_to_db
-      ActiveRecord::Base.establish_connection(:adapter => 'postgis',:database   => Config.dbname)
-      # @ar_model = Class.new(ActiveRecord::Base)
-      # 
-      # 
-      # @ar_model.table_name = name
-      # @ar_model.set_primary_key @id_column
     end
 
     # if it's not defined here, try it on the Sequel Model
@@ -102,19 +81,15 @@ module Rake
 
     # has the table been created?
     def exists?
-      return true
       begin
-        res=@@db.fetch %Q/ SELECT tablename FROM pg_tables WHERE tablename=?/, table_name
+        res=@@db.fetch %Q/ SELECT tablename FROM pg_tables WHERE tablename='%s'/ % table_name
         if res.count == 0
-          res=@@db.fetch %Q/ SELECT viewname FROM pg_views WHERE viewname=?/, table_name
+          res=@@db.fetch %Q/ SELECT viewname FROM pg_views WHERE viewname='%s'/ % table_name
         end
       rescue => err
         return false
       end
-      if res.count > 0
-        return true
-      end
-      return false
+      return res.count > 0
     end
 
     # return the last time this table was updated
@@ -197,7 +172,6 @@ module Rake
     end
 
     def drop_table
-      puts db.table_exists?(name)
       db.drop_table(name) if db.table_exists?(name)
     end
 

@@ -60,19 +60,18 @@ end
 
 task :seattle_osm => [:seattle_osm_roads, :seattle_osm_polygon, :seattle_osm_point, :seattle_osm_line ]
 
-# table :seattle_rails => [:seattle_osm] do |t|
-table :seattle_rails do |t|
+table :seattle_rails => [:seattle_osm] do |t|
+# table :seattle_rails do |t|
   t.drop_table
-  # t.create_table do
-  #   # primary_key :id
-  #   String :name
-  # end
+#   t.create_table do
+#     # primary_key :id
+#     String :name
+#   end
   t.run %Q/
     SELECT osm_id as gid,railway,name,route_name,updated_at, way as the_geom 
       INTO #{t.table_name_literal} 
       FROM "seattle_osm_line" 
       WHERE railway IS NOT NULL/
-  # t.add_spatial_index
-  # t.add_updated_at
-  # t.cleanup_geom_columns
+  t.add_update_column
+  t.populate_geometry_columns
 end
