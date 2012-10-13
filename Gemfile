@@ -10,4 +10,4 @@ gem "logger"
 gem "activerecord"
 gem "activerecord-postgis-adapter"
 gem "rspec"
-
+gem "sequel-postgis", :git => "/Users/darrell/Dropbox/Work/postgis/sequel-postgis"

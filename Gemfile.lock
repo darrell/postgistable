@@ -1,3 +1,9 @@
+GIT
+  remote: /Users/darrell/Dropbox/Work/postgis/sequel-postgis
+  revision: 65ec2d4190110c0fca9a97081df718e855e5c94d
+  specs:
+    sequel-postgis (0.1.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -50,3 +56,4 @@ DEPENDENCIES
   rake
   rspec
   sequel
+  sequel-postgis!
