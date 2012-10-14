@@ -23,7 +23,7 @@ module Rake
         -lco GEOM_TYPE="#{geom_type}" \
           "#{shp}" -nln "#{table_name}"
       }
-      add_updated_at
+      add_update_column
     end
   end
 end
