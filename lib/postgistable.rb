@@ -1,2 +1,2 @@
-include 'tabletask'
-include 'shapefiletask'
+require 'tabletask'
+require 'shapefiletask'
