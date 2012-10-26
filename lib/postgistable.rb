@@ -1,0 +1,2 @@
+include 'tabletask'
+include 'shapefiletask'
