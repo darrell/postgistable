@@ -3,7 +3,7 @@ class TigerFile
   attr_reader :filename
 
   def initialize(f)
-    @orig = f
+    @filename = f
     if f=~/tl_\d{4}_(us|\d\d)(\d{0,3})_(\w+)/
       @type=$3
       @fips=$1
@@ -23,12 +23,18 @@ module Rake
 
     def load_tigerfile(file, opts={})
       f=TigerFile.new(file)
-      self.send("load_tigerfile_#{f.type}", f)
+      load_shapefile f.filename
+      add_indexes tiger_indexes(f)
     end
     
-    def load_tigerfile_tract(f)
-      self.load_shapefile f.filename
-      self.add_index :statefp
+    private
+    def tiger_indexes(f)
+      case f.type
+      when 'tract'
+        [:statefp]
+      else
+        []
+      end
     end
   end
 end
