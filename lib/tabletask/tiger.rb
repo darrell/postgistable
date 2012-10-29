@@ -24,7 +24,7 @@ module Rake
     def load_tigerfile(file, opts={})
       f=TigerFile.new(file)
       load_shapefile f.filename
-      add_indexes tiger_indexes(f)
+      add_index tiger_indexes(f)
     end
     
     private
