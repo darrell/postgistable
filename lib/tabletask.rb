@@ -8,6 +8,7 @@ require 'sequel'
 require 'tabletask/postgis'
 require 'tabletask/ogr'
 require 'tabletask/osm'
+require 'tabletask/tiger'
 require 'logger'
 # require 'sequel/extensions/string_date_time'
 
