@@ -174,6 +174,14 @@ module Rake
     def drop_table
       db.drop_table(name) if db.table_exists?(name)
     end
+    
+    def add_index(idxs)
+      db.alter_table(table_name) do
+        [idxs].flatten.each do |i|
+          add_index i
+        end
+      end
+    end
 
     def ds
       dataset
