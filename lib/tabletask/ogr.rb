@@ -2,6 +2,7 @@ module Rake
   class TableTask < Task
     def load_shapefile(shp, options = {})
       options[:srid]||=4326
+      options[:schema]||='public'
       ENV['PGCLIENTENCODING']='LATIN1'
       if @as_geography
         geom_column=geography_column
@@ -21,7 +22,7 @@ module Rake
         -lco PRECISION=NO \
         -lco GEOMETRY_NAME="#{geom_column}"\
         -lco GEOM_TYPE="#{geom_type}" \
-          "#{shp}" -nln "#{table_name}"
+          "#{shp}" -nln "#{schema}.#{table_name}"
       }
       add_update_column
     end

@@ -23,7 +23,7 @@ module Rake
 
     def load_tigerfile(file, opts={})
       f=TigerFile.new(file)
-      load_shapefile f.filename
+      load_shapefile f.filename, :schema => "tiger_#{f.fips}"
       add_index tiger_indexes(f)
     end
     
