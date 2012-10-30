@@ -46,15 +46,18 @@ module Rake
       super
     end
 
+    def create_schema(name)
+      begin
+        db.create_schema name
+      rescue Sequel::DatabaseError => err
+        raise err unless err.message =~ /schema "#{name}" already exists/
+      end
+    end
     # load a shp or dbf file from the prerequisites
     # the first prerequisite that matches a tiger filename
     # will be the one loaded.
     def load_tigerfile(opts={})
-      begin
-        db.create_schema self.schema_name
-      rescue Sequel::DatabaseError => err
-        raise err unless err.message =~ /schema "#{self.schema_name}" already exists/
-      end
+      create_schema self.schema_name
       load_shapefile source_file.filename, :append => true
 
       # create indexes, but ignore errors for missing
@@ -68,16 +71,25 @@ module Rake
         end
       end
 
-      if source_file.fips =~ /^\d\d$/ and model.columns.include? 'statefp'
+      if source_file.fips =~ /^\d\d$/ and model.columns.map{|x|x.to_sym}.include? :statefp
         fips=source_file.fips
         db.alter_table(model.table_name) do
           add_constraint :check_statefp,:statefp => fips
         end
       end
-      
+      configure_inheritance
     end
     
+    
     private
+    def configure_inheritance
+      create_schema 'tiger'
+      # no way to do this using the Sequel DSL (at least that I can see)
+      if !db.table_exists? "tiger__#{table_name}".to_sym
+        db.run %Q{CREATE TABLE "tiger".#{table_name} (LIKE #{model.simple_table})}
+      end
+      db.run %Q{ALTER TABLE #{model.simple_table} INHERIT "tiger".#{table_name}}
+    end
 
     def tiger_indexes(f)
       # take a file type (tract, edges, etc) in case we want to alter

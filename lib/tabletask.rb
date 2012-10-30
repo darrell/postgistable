@@ -199,7 +199,7 @@ module Rake
 
     def indexed_columns
       cols=[]
-      db.indexes(table_name).each do |k,v|
+      db.indexes(model.table_name).each do |k,v|
         cols << v[:columns]
       end
       cols.flatten.uniq
@@ -225,13 +225,13 @@ module Rake
 
     def add_primary_key
       pk=primary_key
-      @@db.alter_table(name) do
+      db.alter_table(name) do
         add_primary_key pk
       end
     end
     
     def primary_key_exists?
-      @model.columns.include? primary_key
+      model.columns.include? primary_key
     end
   end
 end
