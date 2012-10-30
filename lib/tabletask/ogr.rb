@@ -22,9 +22,9 @@ module Rake
         -lco PRECISION=NO \
         -lco GEOMETRY_NAME="#{geom_column}"\
         -lco GEOM_TYPE="#{geom_type}" \
-          "#{shp}" -nln "#{options[:schema]}.#{table_name}"
+          "#{shp}" -nln #{simple_table}
       }
-      add_update_column
+      model.add_update_column
     end
   end
 end

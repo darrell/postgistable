@@ -35,8 +35,10 @@ module Rake
     boolean_attr :use_copy, :as_geography
     
     @@db=Sequel.connect("postgres:/#{Config.dbname}")
+    @@db.cache_schema=false
     Sequel::Model.plugin :postgis
     @@db.extension :postgis
+
     def initialize(*args, &block)
       super(*args, &block)
       if Rake.application.options.trace
@@ -82,11 +84,11 @@ module Rake
     # has the table been created?
     def exists?
       begin
-        res=@@db.fetch %Q/ SELECT tablename FROM pg_tables WHERE tablename='%s'/ % table_name
+        res=@@db.fetch %Q/ SELECT tablename FROM pg_tables WHERE tablename='%s' AND schemaname='%s'/ % [table_name,schema_name]
         if res.count == 0
-          res=@@db.fetch %Q/ SELECT viewname FROM pg_views WHERE viewname='%s'/ % table_name
+          res=@@db.fetch %Q/ SELECT viewname FROM pg_views WHERE viewname='%s'AND schemaname='%s'/ % [table_name,schema_name]
         end
-      rescue => err
+      rescue PG::Error => err
         return false
       end
       return res.count > 0
@@ -97,7 +99,8 @@ module Rake
     # column does not exist, then return Rake::EARLY
     def timestamp
       begin
-        max=@model.max(:updated_at)
+        max=model.max(:updated_at)
+      #rescue PG::Error => err
       rescue => err
         # puts " error was #{err}"
         # if we get an error, just assume we need to update the table
@@ -126,11 +129,30 @@ module Rake
 
 
     def table_name
-      name.to_sym
+      model.dataset.schema_and_table(model.table_name)[1]
+    end
+    
+    def table_name_and_schema
+      model.dataset.schema_and_table(model.table_name)
     end
 
     def table_name_literal
       @@db.literal(table_name)
+    end
+    
+    def table_name=(name)
+      puts "settings schema to #{name}"
+      model.dataset=name
+    end
+    
+    def schema_name
+      model.dataset.schema_and_table(model.table_name)[0] || 'public'
+    end
+      
+    def schema=(name)
+      if schema_name != name
+        self.table_name="#{name}__#{table_name}".to_sym
+      end
     end
 
     # will this task use insert instead of copy when loading a shapefile?
@@ -172,11 +194,11 @@ module Rake
     end
 
     def drop_table
-      db.drop_table(name) if db.table_exists?(name)
+      db.drop_table(model.table_name) if db.table_exists?(model.table_name)
     end
     
     def add_index(idxs)
-      db.alter_table(table_name) do
+      db.alter_table(model.table_name) do
         [idxs].flatten.each do |i|
           add_index i
         end
