@@ -3,6 +3,8 @@ module Rake
     def load_shapefile(shp, options = {})
       options[:srid]||=4326
       options[:schema]||='public'
+      
+      append_or_overwrite= fetch(options[:append], false) ? '-append' : '-overwrite'
       ENV['PGCLIENTENCODING']='LATIN1'
       if @as_geography
         geom_column=geography_column
@@ -11,20 +13,29 @@ module Rake
         geom_column=geometry_column
         geom_type="geometry"
       end
+      srs=shp =~ /\.shp$/ ? "-t_srs  EPSG:#{options[:srid]}" : ''
         #-explodecollections \
       sh %Q{
         ogr2ogr -f PostgreSQL PG:dbname="#{Config.dbname}" \
-        -overwrite \
-        -t_srs  EPSG:#{options[:srid]} \
+        #{append_or_overwrite} \
         --config PG_USE_COPY #{@use_copy.to_s} \
-        -nlt MULTIPOLYGON \
+        #{srs} \
         -lco FID=#{primary_key} \
         -lco PRECISION=NO \
+        -nlt #{shapefile_geom(shp)} \
         -lco GEOMETRY_NAME="#{geom_column}"\
         -lco GEOM_TYPE="#{geom_type}" \
           "#{shp}" -nln #{simple_table}
       }
       model.add_update_column
+    end
+    #returns the geometry of a given shapefile
+    # NONE, GEOMETRY, POINT, LINESTRING, POLYGON, GEOMETRYCOLLECTION, MULTIPOINT, MULTIPOLYGON or MULTILINESTRING
+    def shapefile_geom(shp)
+      str=%x{ ogrinfo -q #{shp}}
+      if str =~ /1:.*\((.*)\)/
+        return $1.gsub(' ','').upcase
+      end
     end
   end
 end

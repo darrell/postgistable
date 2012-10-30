@@ -196,10 +196,20 @@ module Rake
     def drop_table
       db.drop_table(model.table_name) if db.table_exists?(model.table_name)
     end
-    
+
+    def indexed_columns
+      cols=[]
+      db.indexes(table_name).each do |k,v|
+        cols << v[:columns]
+      end
+      cols.flatten.uniq
+    end
     def add_index(idxs)
+      # do not index columns that have indexes
+      idxs=[idxs].flatten - indexed_columns
+      return true if idxs.empty?
       db.alter_table(model.table_name) do
-        [idxs].flatten.each do |i|
+        idxs.each do |i|
           add_index i
         end
       end

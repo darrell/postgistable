@@ -55,9 +55,20 @@ module Rake
       rescue Sequel::DatabaseError => err
         raise err unless err.message =~ /schema "#{self.schema_name}" already exists/
       end
-      load_shapefile source_file.filename
-      add_index tiger_indexes(self.source_file)
-      if source_file.fips =~ /^\d\d$/
+      load_shapefile source_file.filename, :append => true
+
+      # create indexes, but ignore errors for missing
+      # columns. Makes it easier to generate a big set of defaults
+
+      tiger_indexes(self.source_file).each do |col|
+        begin
+          add_index col
+        rescue => err
+          raise unless err.message =~ /column "#{col}" does not exist/
+        end
+      end
+
+      if source_file.fips =~ /^\d\d$/ and model.columns.include? 'statefp'
         fips=source_file.fips
         db.alter_table(model.table_name) do
           add_constraint :check_statefp,:statefp => fips
@@ -69,16 +80,9 @@ module Rake
     private
 
     def tiger_indexes(f)
-      # common=[:statefp, :placefp, :countyfp, :cousubfp, :name, :street, :fullstreet, :arid, :tlid, :linearid, :fullname, :tfidl, :tfidr]
-      common=[:statefp,:name, :geoid]
-      case f.type
-      when 'tract'
-        common+[ :countyfp ]
-      when 'state'
-        common
-      else
-        []
-      end
+      # take a file type (tract, edges, etc) in case we want to alter
+      # these in the future. But for now, just return everything
+      [:statefp, :geoid, :name, :tlid , :tfidl, :tfidr, :countyfp, :zipl, :zipr]
     end
   end
 end
