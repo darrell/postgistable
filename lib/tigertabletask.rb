@@ -73,8 +73,12 @@ module Rake
 
       if source_file.fips =~ /^\d\d$/ and model.columns.map{|x|x.to_sym}.include? :statefp
         fips=source_file.fips
-        db.alter_table(model.table_name) do
-          add_constraint :check_statefp,:statefp => fips
+        begin
+          db.alter_table(model.table_name) do
+            add_constraint :check_statefp,:statefp => fips
+          end
+        rescue => e
+          raise unless e.message =~ /constraint.*already exists/
         end
       end
       configure_inheritance
@@ -88,7 +92,11 @@ module Rake
       if !db.table_exists? "tiger__#{table_name}".to_sym
         db.run %Q{CREATE TABLE "tiger".#{table_name} (LIKE #{model.simple_table})}
       end
-      db.run %Q{ALTER TABLE #{model.simple_table} INHERIT "tiger".#{table_name}}
+      begin
+        db.run %Q{ALTER TABLE #{model.simple_table} INHERIT "tiger".#{table_name}}
+      rescue => err
+        raise unless err.message =~ /would be inherited from more than once/
+      end
     end
 
     def tiger_indexes(f)
