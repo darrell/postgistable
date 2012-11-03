@@ -16,7 +16,7 @@ module Rake
       srs=shp =~ /\.shp$/ ? "-t_srs  EPSG:#{options[:srid]}" : ''
         #-explodecollections \
       sh %Q{
-        ogr2ogr -f PostgreSQL PG:dbname="#{Config.dbname}" \
+        ogr2ogr -f PostgreSQL "#{Config.ogr_connect_string}" \
         #{append_or_overwrite} \
         --config PG_USE_COPY #{@use_copy.to_s} \
         #{srs} \

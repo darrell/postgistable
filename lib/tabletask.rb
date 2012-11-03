@@ -18,23 +18,41 @@ module Rake
   class TableTask < Task
     extend BooleanAttributable
     class Config
-      attr_accessor :model, :dbname, :dbuser
-      @@dbname='gis'
-      @@dbuser='darrell'
-      def self.dbname
-        @@dbname
+      attr_accessor :model, :dbname, :dbuser, :dbhost,:dbpassword
+      @dbname='tiger2012'
+      @dbuser='projectdx'
+      @dbhost='db1'
+      #def self.dbname
+      #  @@dbname
+      #end
+      #def self.dbuser
+      #  @@dbuser
+      #end
+
+      def self.sequel_connect_string
+        str='postgres://'
+        str+=@dbuser if @dbuser
+        str+=':'+@dbpassword if @dbpassword
+        str+='@' + @dbhost if @dbhost
+        str+='/'+@dbname if @dbname
+        str
       end
-      def self.dbuser
-        @@dbuser
+
+      def self.ogr_connect_string
+        str='PG: '
+        str+=' dbname='+@dbname if @dbname
+        str+=' user='+@dbuser if @dbuser
+        str+=' password='+@dbpassword if @dbpassword
+        str+=' host=' + @dbhost if @dbhost
+        str
       end
-      
     end
     
     attr_accessor :geometry_column, :geography_column, :id_column, :srid
     attr_reader :model, :dbname, :dbuser
     boolean_attr :use_copy, :as_geography
     
-    @@db=Sequel.connect("postgres:/#{Config.dbname}")
+    @@db=Sequel.connect(Config.sequel_connect_string)
     @@db.cache_schema=false
     Sequel::Model.plugin :postgis
     @@db.extension :postgis
