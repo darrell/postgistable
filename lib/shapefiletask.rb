@@ -32,7 +32,7 @@ module Rake
         components.push(Pathname.new("#{mydir}/#{i}")) if /^#{b}\.(#{@shp_extentions.join('|')})/i.match(i)
       end
       len=components.grep(/\.(shx|dbf)$/i).length
-      puts components.grep(/\.(shx|dbf)$/i)
+      # puts components.grep(/\.(shx|dbf)$/i)
       # raise "shapefile '#{@shpname}' is missing a component. Found #{len} components: #{components.join(' ')}" unless len==2
       return components
     end 

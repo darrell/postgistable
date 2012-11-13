@@ -5,65 +5,43 @@ require 'boolean_attributable'
 require 'pg'
 require 'sequel'
 # require 'sequel/postgis'
+require 'tabletask/config'
 require 'tabletask/postgis'
 require 'tabletask/ogr'
 require 'tabletask/osm'
 require 'tabletask/tiger'
 require 'logger'
+
 # require 'sequel/extensions/string_date_time'
 
 # require 'active_record/connection_adapters/postgis_adapter/railtie'
  
 module Rake
-  class TableTask < Task
+  module TableTask
+    class Task < Rake::Task
+
     extend BooleanAttributable
-    class Config
-      attr_accessor :model, :dbname, :dbuser, :dbhost,:dbpassword
-      @dbname='tiger2012'
-      @dbuser='projectdx'
-      @dbhost='db1'
-      #def self.dbname
-      #  @@dbname
-      #end
-      #def self.dbuser
-      #  @@dbuser
-      #end
+    include Rake::TableTask::PostGIS
+    include Rake::TableTask::OGR
+    include Rake::TableTask::OSM
 
-      def self.sequel_connect_string
-        str='postgres://'
-        str+=@dbuser if @dbuser
-        str+=':'+@dbpassword if @dbpassword
-        str+='@' + @dbhost if @dbhost
-        str+='/'+@dbname if @dbname
-        str
-      end
-
-      def self.ogr_connect_string
-        str='PG: '
-        str+=' dbname='+@dbname if @dbname
-        str+=' user='+@dbuser if @dbuser
-        str+=' password='+@dbpassword if @dbpassword
-        str+=' host=' + @dbhost if @dbhost
-        str
-      end
-    end
-    
-    attr_accessor :geometry_column, :geography_column, :id_column, :srid
+    attr_accessor :geometry_column, :geography_column, :id_column, :srid,:db
     attr_reader :model, :dbname, :dbuser
     boolean_attr :use_copy, :as_geography
     
-    @@db=Sequel.connect(Config.sequel_connect_string)
-    @@db.cache_schema=false
-    Sequel::Model.plugin :postgis
-    @@db.extension :postgis
 
     def initialize(*args, &block)
       super(*args, &block)
+      @db=Sequel.connect(Config.sequel_connect_string)
+      @db.cache_schema=false
+      Sequel::Model.plugin :postgis
+      @db.extension :postgis
+
       if Rake.application.options.trace
-        @@db.loggers << ::Logger.new($stdout)
-        @@db.run('set client_min_messages to debug')
+        @db.loggers << ::Logger.new($stdout)
+        @db.run('set client_min_messages to debug')
       else
-        @@db.run('set client_min_messages to error')
+        @db.run('set client_min_messages to error')
       end
       @use_copy = true
       @geometry_column = :the_geom
@@ -71,6 +49,7 @@ module Rake
       @id_column = :gid
       @as_geography = false
       @srid=4326
+
       
       #class_eval
       @model = Class.new(Sequel::Model(name.to_sym))
@@ -102,9 +81,9 @@ module Rake
     # has the table been created?
     def exists?
       begin
-        res=@@db.fetch %Q/ SELECT tablename FROM pg_tables WHERE tablename='%s' AND schemaname='%s'/ % [table_name,schema_name]
+        res=@db.fetch %Q/ SELECT tablename FROM pg_tables WHERE tablename='%s' AND schemaname='%s'/ % [table_name,schema_name]
         if res.count == 0
-          res=@@db.fetch %Q/ SELECT viewname FROM pg_views WHERE viewname='%s'AND schemaname='%s'/ % [table_name,schema_name]
+          res=@db.fetch %Q/ SELECT viewname FROM pg_views WHERE viewname='%s'AND schemaname='%s'/ % [table_name,schema_name]
         end
       rescue PG::Error => err
         return false
@@ -155,7 +134,7 @@ module Rake
     end
 
     def table_name_literal
-      @@db.literal(table_name)
+      @db.literal(table_name)
     end
     
     def table_name=(name)
@@ -238,7 +217,7 @@ module Rake
     end
 
     def dataset
-       @@db.from(name)
+       @db.from(name)
     end   
 
     def add_primary_key
@@ -253,7 +232,8 @@ module Rake
     end
   end
 end
+end
 
 def table(*args, &block)
-  Rake::TableTask.define_task(*args, &block)
+  Rake::TableTask::Task.define_task(*args, &block)
 end
