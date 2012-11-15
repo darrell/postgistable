@@ -190,6 +190,10 @@ module Rake
       end
     end
 
+    def truncate!
+      db[model.table_name].truncate
+    end
+
     def drop_table
       db.drop_table(model.table_name) if db.table_exists?(model.table_name)
     end
@@ -197,17 +201,24 @@ module Rake
     def indexed_columns
       cols=[]
       db.indexes(model.table_name).each do |k,v|
-        cols << v[:columns]
+        if v[:columns].length == 1
+          cols << v[:columns][0]
+        else
+          cols << v[:columns]
+        end
       end
-      cols.flatten.uniq
+      cols.uniq
     end
-    def add_index(idxs)
+    def add_index(idxs, opts={})
       # do not index columns that have indexes
-      idxs=[idxs].flatten - indexed_columns
+      if ! idxs.is_a? Enumerable
+        idxs=[idxs].flatten
+      end
+      idxs=idxs-indexed_columns
       return true if idxs.empty?
       db.alter_table(model.table_name) do
         idxs.each do |i|
-          add_index i
+          add_index i, opts
         end
       end
     end

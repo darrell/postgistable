@@ -67,35 +67,46 @@ module Rake
       # the first prerequisite that matches a tiger filename
       # will be the one loaded.
       def load_tigerfile(opts={})
+        opts[:append] = true
         create_schema self.schema_name
-        load_shapefile self.source_file.filename, :append => true
+        load_shapefile self.source_file.filename, opts
 
         # create indexes, but ignore errors for missing
         # columns. Makes it easier to generate a big set of defaults
 
+        tiger_unique_indexes(self.source_file).each do |col|
+          # we don't rescue these, because unique columns are specific to a type of table
+            add_index [col], :unique => true
+        end
+
         tiger_indexes(self.source_file).each do |col|
           begin
-            add_index col
+            add_index [col]
           rescue => err
             raise unless err.message =~ /column "#{col}" does not exist/
           end
         end
 
+        add_check_constraints
+        configure_inheritance
+      end
+      
+      private
+      def add_check_constraints
         if source_file.fips =~ /^\d\d$/ and model.columns.map{|x|x.to_sym}.include? :statefp
           fips=source_file.fips
+          co_fips=source_file.co_fips
           begin
             db.alter_table(model.table_name) do
               add_constraint :check_statefp,:statefp => fips
+              add_constraint :check_countyfp,:countyfp => co_fips if co_fips
             end
           rescue => e
             raise unless e.message =~ /constraint.*already exists/
           end
         end
-        configure_inheritance
       end
-      
-      
-      private
+
       def configure_inheritance
         create_schema 'tiger'
         # no way to do this using the Sequel DSL (at least that I can see)
@@ -109,10 +120,41 @@ module Rake
         end
       end
 
+      def tiger_unique_indexes(f)
+        case f.type
+        when 'addrfn'
+          [[:arid,:linearid]]
+        when 'faces'
+          [:tfid]
+        when 'facesal'
+          [[:tfid,:areaid]]
+        when 'facesah'
+          [[:tfid,:hydroid]]
+        when 'arealm'
+          [[:areaid]]
+        when 'areawater'
+          [:hydroid]
+        when 'facesmil'
+          [[:tfid,:areaid]]
+        when 'mil'
+          [:areaid]
+        when 'edges'
+          [:tlid]
+        when 'featnames'
+          [[:tlid,:linearid]]
+        when 'addr'
+          [:arid]
+        when /(roads|linearwater|rails)/i
+          [:linearid]
+        else
+        []
+        end
+      end
+
       def tiger_indexes(f)
         # take a file type (tract, edges, etc) in case we want to alter
         # these in the future. But for now, just return everything
-        [:statefp, :geoid, :name, :tlid , :tfidl, :tfidr, :countyfp, :zipl, :zipr]
+        [:statefp, :geoid, :name, :tlid , :tfidl, :tfidr,:countyfp, :zipl, :linearid,:zipr]-tiger_unique_indexes(f)
       end
     end
   end
