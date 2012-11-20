@@ -271,12 +271,10 @@ task :tiger do
   end
 
   # files with only a DBF
-  # %w{ADDRFN ANRC CONCITY ESTATE FACESAH FACESAL FACESMIL FEATNAMES OTHERID SUBMCD UGA}.each do |x|
-  %w{FACESAL FACESMIL FEATNAMES OTHERID SUBMCD UGA}.each do |x|
-    # load_tigerfiles Dir["TIGER2012/#{x}/tl_2012_06*.dbf"]
+  %w{ADDRFN ANRC CONCITY ESTATE FACESAH FACESAL FACESMIL FEATNAMES OTHERID SUBMCD UGA}.each do |x|
     load_tigerfiles Dir["TIGER2012/#{x}/tl_2012_41*.dbf"]
   end
-  # load_tigerfiles Dir['TIGER2012/**/tl_2012_06[0-9]*.shp']
+  # the shapefiles
   load_tigerfiles Dir['TIGER2012/**/tl_2012_*.shp']
 end
 ```
