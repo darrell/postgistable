@@ -114,7 +114,9 @@ module Rake
           db.run %Q{CREATE TABLE "tiger".#{table_name} (LIKE #{model.simple_table})}
         end
         begin
-          db.run %Q{ALTER TABLE #{model.simple_table} INHERIT "tiger".#{table_name}}
+          # strip the county fips code, if we have one
+          tn = source_file.co_fips.nil? ? table_name : table_name.sub(/#{source_file.co_fips}$/,'')
+          db.run %Q{ALTER TABLE #{model.simple_table} INHERIT "tiger".#{tn}}
         rescue => err
           raise unless err.message =~ /would be inherited from more than once/
         end
