@@ -13,7 +13,6 @@ module Rake
       @shpname_base=[File.dirname(@shpname),File.basename(@shpname, '.shp')].join('/')
       @shp_extentions=%w{shx dbf prj sbn fbn fbx ain aih ixs mxs atx shp.xml}
 
-      canonify_components #should this be optional?
       # we want to always touch the .shp if any of the components have changed,
       # otherwise we'll just run over and over again. 
       # but this can bite us, since it's done first, right?
@@ -38,6 +37,12 @@ module Rake
     end 
 
     def canonify_components
+      canonify
+    end
+
+    # downcase all the constituent parts
+    # of a shapefile so they match.
+    def canonify
       find_components.each do |comp|
         # set the newname
         newext=/\.shp\.xml$/i.match(comp.to_s.downcase)
