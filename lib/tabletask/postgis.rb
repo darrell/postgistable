@@ -21,9 +21,15 @@ module Rake
                                              '#{options[:srid]}',
                                              '#{options[:geom_type]}',
                                              '#{options[:dimensions].to_s}')/
-        add_spatial_index(options[:column_name].to_sym)
+        add_spatial_index(options[:column_name])
       end
-      
+
+      def add_spatial_index(col = :the_geom, options={})
+        db.alter_table(table_name) do
+          add_spatial_index col, options
+        end
+      end
+
       # add a column containing the centroid of the original geometry
       # options: 
       # :centroid_column (default 'the_geom_centroids)
