@@ -183,19 +183,33 @@ module Rake
       end
     end
     
-    def create_table(*args, &block)
-      db.create_table!(name,*args, &block)
-      unless primary_key_exists?
-        add_primary_key
+    # create the table, unless it's already
+    # there.
+    def create_table?(*args, &block)
+      if !db.table_exists?(model.table_name)
+        create_table(*args, &block)
       end
+    end
+
+    # force re-creation of table if it
+    # already exists
+    def create_table!(*args, &block)
+      drop_table(model.table_name)
+      create_table(*args, &block)
+    end
+
+    # create a table, and add the primary key
+    # if we don't already have one defined
+    def create_table(*args, &block)
+      db.create_table(name,*args, &block)
     end
 
     def truncate!
       db[model.table_name].truncate
     end
-
-    def drop_table
-      db.drop_table(model.table_name) if db.table_exists?(model.table_name)
+    
+    def drop_table(*args)
+      db.drop_table(model.table_name, *args) if db.table_exists?(model.table_name)
     end
 
     def indexed_columns
