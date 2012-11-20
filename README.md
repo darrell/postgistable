@@ -146,7 +146,7 @@ end
 # load the OSM data. Unfortunately, osm2pgsql creates
 # four tables out of each input file, so we
 # need to make sure we get update columns on them all,
-# but we only the data once (in :seattle_osm_line)
+# but we only load the data once (in :seattle_osm_line)
 
 table :seattle_osm_line => ['osm/seattle.osm'] do |t|
   t.load_osmfile('osm/seattle.osm', :style => 'osm/default.style')
@@ -189,7 +189,7 @@ When we depend on multiple tables, we may want to make sure we get the most
 recent "updated_at" so that we know if we need to update:
 
 ```ruby
-table :my_table => [:table_one, :table_two] do |t|_
+table :my_table => [:table_one, :table_two] do |t|
   t.drop_table
   t.run %Q{
     INSERT INTO #{t.name} 
@@ -204,6 +204,7 @@ table :my_table => [:table_one, :table_two] do |t|_
   # should never be updated directly
 end
 ```
+---
 
 Loads all shapefiles from the directory "shps" into tables of the same name
 (e.g. "shps/roads.shp" becomes table "roads"):
@@ -227,8 +228,9 @@ Dir['shps/**/*.[Ss][Hh][Pp]'].each do |shp|
   end
 end
 ```
+---
 
-This example uses the tigertable task to load a complete set of tiger files.
+This next example uses the tigertable task to load a complete set of tiger files.
 It's made more challenging by the fact that TIGER files might be broken up
 into many smaller files. We work around this by using partitioning and table
 inheritance, putting state and county specific tables into their own schemas.
