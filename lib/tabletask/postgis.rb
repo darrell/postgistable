@@ -43,7 +43,7 @@ module Rake
         options[:create_trigger] ||= true
 
         add_point_column(:column_name => options[:centroid_column])
-        run %Q/UPDATE #{table_name_literal} SET 
+        run %Q/UPDATE #{table_name} SET 
                      #{options[:centroid_column]}=ST_PointOnSurface(#{options[:source_column]})
                      WHERE #{options[:centroid_column]} IS NULL
                    /
