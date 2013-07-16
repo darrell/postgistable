@@ -37,7 +37,7 @@ module Rake
           raise Rake::TaskArgumentError, "tigertable requires at least one prerequisite"
         end
         @source_file=Rake::TableTask::TigerFile.new(prerequisites)
-        self.schema="tiger_#{source_file.fips}"
+        self.schema_name="tiger_#{source_file.fips}"
         @initialized=true
       end
 

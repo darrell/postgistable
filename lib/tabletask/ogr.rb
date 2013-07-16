@@ -5,7 +5,8 @@ module Rake
         options[:srid]||=4326
         options[:schema]||='public'
         
-        append_or_overwrite= fetch(options[:append], false) ? '-append' : '-overwrite'
+        # append_or_overwrite= fetch(options[:append], false) ? '-append' : '-overwrite'
+        append_or_overwrite= '-overwrite'
         ENV['PGCLIENTENCODING']='LATIN1'
         if @as_geography
           geom_column=geography_column
@@ -34,6 +35,7 @@ module Rake
       # NONE, GEOMETRY, POINT, LINESTRING, POLYGON, GEOMETRYCOLLECTION, MULTIPOINT, MULTIPOLYGON or MULTILINESTRING
       def shapefile_geom(shp)
         str=%x{ ogrinfo -q #{shp}}
+        str.sub!(/\b3D\b/i,'')
         if str =~ /1:.*\((.*)\)/
           return $1.gsub(' ','').upcase
         end

@@ -29,20 +29,29 @@ module Rake
     attr_reader :model, :dbname, :dbuser
     boolean_attr :use_copy, :as_geography
     
+    def connection_defaults
+      mydb=Sequel.connect(Config.sequel_connect_string)
 
-    def initialize(*args, &block)
-      super(*args, &block)
-      @db=Sequel.connect(Config.sequel_connect_string)
-      @db.cache_schema=false
+      # because we are in the business of modifying
+      # let's make sure our changes are seen immediately
+      mydb.cache_schema=false
+
+      # load postgis module
       Sequel::Model.plugin :postgis
-      @db.extension :postgis
+      mydb.extension :postgis
 
       if Rake.application.options.trace
-        @db.loggers << ::Logger.new($stdout)
-        @db.run('set client_min_messages to debug')
+        mydb.loggers << ::Logger.new($stdout)
+        mydb.run('set client_min_messages to debug')
       else
-        @db.run('set client_min_messages to error')
+        mydb.run('set client_min_messages to error')
       end
+      return mydb
+    end
+    def initialize(*args, &block)
+      super(*args, &block)
+      @@db ||= connection_defaults
+      @db ||= @@db
       @use_copy = true
       @geometry_column = :the_geom
       @geography_column = :the_geog
@@ -88,7 +97,14 @@ module Rake
       rescue PG::Error => err
         return false
       end
-      return res.count > 0
+
+      # also say false if the table is empty
+      if res.count > 0
+        return ds.select(1).limit(1).count > 0
+      else
+        return true
+      end
+      return false
     end
 
     # return the last time this table was updated
@@ -138,7 +154,6 @@ module Rake
     end
     
     def table_name=(name)
-      puts "settings schema to #{name}"
       model.dataset=name
     end
     
@@ -146,12 +161,15 @@ module Rake
       model.dataset.schema_and_table(model.table_name)[0] || 'public'
     end
       
-    def schema=(name)
+    def schema_name=(name)
       if schema_name != name
         self.table_name="#{name}__#{table_name}".to_sym
       end
     end
 
+    def schema
+      db.schema(table_name)
+    end
     # will this task use insert instead of copy when loading a shapefile?
     # --
     # it's opposites day!
@@ -209,6 +227,7 @@ module Rake
     end
     
     def drop_table(*args)
+      puts "told to drop #{model.table_name}, so: #{db.table_exists?(model.table_name)}"
       db.drop_table(model.table_name, *args) if db.table_exists?(model.table_name)
     end
 

@@ -53,7 +53,7 @@ module Rake
       def add_latlong_from_centroid_trigger(options={})
         centroid_column = options[:centroid_column]||=:the_geom_centroids
         source_column = options[:source_column]||=:the_geom
-        @@db.alter_table(table_name) do
+        db.alter_table(table_name) do
           add_column :latitude, Float
           add_column :longitude, Float
         end
@@ -63,17 +63,17 @@ module Rake
          DECLARE
            geom_type text;
          BEGIN
-           geom_type := geometrytype(NEW.#{@@db.literal(source_column)});
+           geom_type := geometrytype(NEW.#{@db.literal(source_column)});
            BEGIN
            -- we want to ignore rows that generate errors
            -- this is usually a bad geometry problem
              if geom_type = 'POINT' THEN
-                 NEW.latitude := st_y(NEW.#{@@db.literal(source_column)});
-                 NEW.longitude := st_x(NEW.#{@@db.literal(source_column)});
+                 NEW.latitude := st_y(NEW.#{@db.literal(source_column)});
+                 NEW.longitude := st_x(NEW.#{@db.literal(source_column)});
              elsif geom_type = 'MULTIPOLYGON' THEN
-                 NEW.the_geom_centroids := ST_PointOnSurface(NEW.#{@@db.literal(source_column)});
-                 NEW.latitude := st_y(NEW.#{@@db.literal(centroid_column)});
-                 NEW.longitude := st_x(NEW.#{@@db.literal(centroid_column)});
+                 NEW.the_geom_centroids := ST_PointOnSurface(NEW.#{@db.literal(source_column)});
+                 NEW.latitude := st_y(NEW.#{@db.literal(centroid_column)});
+                 NEW.longitude := st_x(NEW.#{@db.literal(centroid_column)});
              end if;
            EXCEPTION
              WHEN internal_error THEN
@@ -85,7 +85,7 @@ module Rake
        $$ language 'plpgsql';
 
        CREATE TRIGGER add_centroid
-         BEFORE INSERT OR UPDATE ON #{table_name_literal}
+         BEFORE INSERT OR UPDATE ON #{table_name}
          FOR EACH ROW EXECUTE PROCEDURE add_centroid_#{table_name}();
        /
       end
