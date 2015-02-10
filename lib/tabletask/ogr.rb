@@ -34,7 +34,7 @@ module Rake
       #returns the geometry of a given shapefile
       # NONE, GEOMETRY, POINT, LINESTRING, POLYGON, GEOMETRYCOLLECTION, MULTIPOINT, MULTIPOLYGON or MULTILINESTRING
       def shapefile_geom(shp)
-        str=%x{ ogrinfo -q #{shp}}
+        str=%x{ ogrinfo -q #{Shellwords.escape(shp)}}
         str.sub!(/\b3D\b/i,'')
         if str =~ /1:.*\((.*)\)/
           return $1.gsub(' ','').upcase
