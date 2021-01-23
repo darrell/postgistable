@@ -1,49 +1,55 @@
 GIT
-  remote: /Users/darrell/Dropbox/Work/postgis/sequel-postgis
-  revision: 65ec2d4190110c0fca9a97081df718e855e5c94d
+  remote: git@github.com:darrell/sequel-postgis.git
+  revision: 0646a38d3d6240637c4de439f2ac2455e44e2688
   specs:
     sequel-postgis (0.1.0)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    activemodel (3.2.8)
-      activesupport (= 3.2.8)
-      builder (~> 3.0.0)
-    activerecord (3.2.8)
-      activemodel (= 3.2.8)
-      activesupport (= 3.2.8)
-      arel (~> 3.0.2)
-      tzinfo (~> 0.3.29)
-    activerecord-postgis-adapter (0.4.3)
-      pg (>= 0.11.0)
-      rgeo-activerecord (~> 0.4.5)
-    activesupport (3.2.8)
-      i18n (~> 0.6)
-      multi_json (~> 1.0)
-    arel (3.0.2)
-    builder (3.0.3)
-    diff-lcs (1.1.3)
-    i18n (0.6.1)
-    logger (1.2.8)
-    multi_json (1.3.6)
-    pg (0.14.1)
-    rake (0.9.2.2)
-    rgeo (0.3.17)
-    rgeo-activerecord (0.4.5)
-      activerecord (>= 3.0.3)
-      arel (>= 2.0.6)
-      rgeo (>= 0.3.10)
-    rspec (2.11.0)
-      rspec-core (~> 2.11.0)
-      rspec-expectations (~> 2.11.0)
-      rspec-mocks (~> 2.11.0)
-    rspec-core (2.11.1)
-    rspec-expectations (2.11.3)
-      diff-lcs (~> 1.1.3)
-    rspec-mocks (2.11.2)
-    sequel (3.39.0)
-    tzinfo (0.3.33)
+    activemodel (6.1.1)
+      activesupport (= 6.1.1)
+    activerecord (6.1.1)
+      activemodel (= 6.1.1)
+      activesupport (= 6.1.1)
+    activerecord-postgis-adapter (7.0.1)
+      activerecord (~> 6.1)
+      rgeo-activerecord (~> 7.0.0)
+    activesupport (6.1.1)
+      concurrent-ruby (~> 1.0, >= 1.0.2)
+      i18n (>= 1.6, < 2)
+      minitest (>= 5.1)
+      tzinfo (~> 2.0)
+      zeitwerk (~> 2.3)
+    concurrent-ruby (1.1.8)
+    diff-lcs (1.4.4)
+    i18n (1.8.7)
+      concurrent-ruby (~> 1.0)
+    logger (1.4.3)
+    minitest (5.14.3)
+    pg (1.2.3)
+    rake (13.0.3)
+    rgeo (2.2.0)
+    rgeo-activerecord (7.0.0)
+      activerecord (>= 5.0)
+      rgeo (>= 1.0.0)
+    rspec (3.10.0)
+      rspec-core (~> 3.10.0)
+      rspec-expectations (~> 3.10.0)
+      rspec-mocks (~> 3.10.0)
+    rspec-core (3.10.1)
+      rspec-support (~> 3.10.0)
+    rspec-expectations (3.10.1)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.10.0)
+    rspec-mocks (3.10.1)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.10.0)
+    rspec-support (3.10.1)
+    sequel (5.40.0)
+    tzinfo (2.0.4)
+      concurrent-ruby (~> 1.0)
+    zeitwerk (2.4.2)
 
 PLATFORMS
   ruby
@@ -57,3 +63,6 @@ DEPENDENCIES
   rspec
   sequel
   sequel-postgis!
+
+BUNDLED WITH
+   1.17.2
