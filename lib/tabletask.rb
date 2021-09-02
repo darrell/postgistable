@@ -61,6 +61,7 @@ module Rake
 
       
       #class_eval
+      ::Sequel::Model.require_valid_table=false
       @model = Class.new(Sequel::Model(name.to_sym))
       @model.set_primary_key @id_column
     end

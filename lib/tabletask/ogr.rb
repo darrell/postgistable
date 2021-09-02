@@ -1,3 +1,4 @@
+require 'shellwords'
 module Rake
   module TableTask
     module OGR
