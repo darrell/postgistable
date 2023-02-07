@@ -7,7 +7,8 @@ gem "rake"
 gem "sequel"
 gem "pg"
 gem "logger"
-gem "activerecord" >= "6.1.2.1"
+gem 'activerecord', '>=6.1.2.1'
+gem 'activesupport', '>=6.1.7.1'
 gem "activerecord-postgis-adapter"
 gem "rspec"
 #gem "sequel-postgis", :git => "/Users/darrell/Dropbox/Work/postgis/sequel-postgis"
